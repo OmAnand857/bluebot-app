@@ -1,0 +1,49 @@
+name: bluebot
+description: "An AI powered bot for managing twitter pages"
+
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  font_awesome_flutter: ^10.7.0
+  flutter_feather_icons: ^2.0.0
+  lucide_icons: ^0.257.0
+  fl_chart: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.6
+
+flutter_launcher_icons:
+  image_path: "assets/images/android_logo12.png"  # <-- Replace with your icon path
+  android: true
+  ios: true
+
+
+flutter_native_splash:
+  android: true
+  ios: true
+
+  color: "#FFFFFF"  # <-- Required
+  image: assets/images/splash_screen.png
+
+  android_12:
+    color: "#FFFFFF"  # <-- Required for Android 12
+    image: assets/images/android_logo12.png
+
+
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/

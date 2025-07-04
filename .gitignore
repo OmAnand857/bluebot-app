@@ -1,0 +1,76 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+*.orig
+
+# IntelliJ related
+*.iml
+.idea/
+
+# VS Code (optional - uncomment if you don't want to sync launch configs, etc.)
+#.vscode/
+
+# Flutter & Dart related
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+generated_plugin_registrant.dart
+
+# iOS
+ios/Flutter/.last_build_id
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/.symlinks/
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/DerivedData/
+ios/build/
+
+# Android
+android/.gradle/
+android/captures/
+android/.idea/
+android/local.properties
+android/app/build/
+
+# Symbolication and obfuscation
+app.*.symbols
+app.*.map.json
+
+# Web
+web/manifest.json
+
+# Mac
+*.xcuserstate
+*.xcworkspace
+*.xcuserdata
+
+# Linux/Windows
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
+
+# Firebase
+firebase-debug.log
+
+# Fastlane (optional)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+
+# Coverage
+coverage/
