@@ -119,10 +119,20 @@ class _CalibrateScreen extends State<CalibrateScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          title: Text("Calibrate Posting"),
-          elevation: 4,
+          title: const Text(
+            "Calibrate Posting",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
           backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          iconTheme: const IconThemeData(color: Colors.black),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
