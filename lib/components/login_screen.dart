@@ -1,21 +1,153 @@
 import 'package:bluebot/components/main_app_screen.dart';
+import 'package:bluebot/data_store/user_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'dart:convert';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _usernameController = TextEditingController();
+  bool oauth1Complete = false;
+  bool oauth2Complete = false;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> redirectToTwitter(String oauthToken) async {
+    final twitterAuthUrl =
+        'https://api.twitter.com/oauth/authorize?oauth_token=$oauthToken';
+
+    try {
+      final result = await FlutterWebAuth2.authenticate(
+        url: twitterAuthUrl,
+        callbackUrlScheme: 'bluebot',
+      );
+
+      final uri = Uri.parse(result);
+      final verifier = uri.queryParameters['oauth_verifier'];
+      final token = uri.queryParameters['oauth_token'];
+      if (verifier != null && token != null) {
+        final backendUri = Uri.parse(
+          "http://192.168.248.73:3000/completeOauth1",
+        );
+
+        try {
+          final response = await http.post(
+            backendUri,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: {
+              'oauth_token': token,
+              'oauth_verifier': verifier,
+              'user_name': _usernameController.text.trim(),
+            },
+          );
+
+          if (response.statusCode == 200) {
+            setState(() {
+              oauth1Complete = true;
+            });
+            loginComplete();
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
+  Future<void> handleLoginoAuth1() async {
+    final uri = Uri.parse("http://192.168.248.73:3000/loginIntent");
+    try {
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        final oauth_token = response.body;
+        redirectToTwitter(oauth_token);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> handleAuthorizeUriOauth2(String url) async {
+    try {
+      final result = await FlutterWebAuth2.authenticate(
+        url: url,
+        callbackUrlScheme: 'bluebot',
+      );
+
+      final uri = Uri.parse(result);
+      final code = uri.queryParameters['code'];
+      final state = uri.queryParameters['state'];
+
+      if (code != null) {
+        final backendUri = Uri.parse(
+          "http://192.168.248.73:3000/completeOauth2",
+        );
+
+        try {
+          final response = await http.post(
+            backendUri,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: {
+              'code': code,
+              'state': state,
+              'user_name': _usernameController.text.trim(),
+            },
+          );
+
+          if (response.statusCode == 200) {
+            setState(() {
+              oauth2Complete = true;
+            });
+            loginComplete();
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
+  Future<void> handleLoginoAuth2() async {
+    final Uri url = Uri.parse(
+      'http://192.168.248.73:3000/loginIntentOauth2?user_name=${_usernameController.text.trim()}',
+    );
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final authorizeUri = response.body;
+        handleAuthorizeUriOauth2(authorizeUri);
+      }
+    } catch (_) {}
+  }
+
+  void loginComplete() {
+    if (oauth1Complete && oauth2Complete) {
+      UserStorage.saveUserSession(userName: _usernameController.text.trim());
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MainAppScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _topHeroSection(context),
-            _loginInput(context),
-            _socialAuthSection(),
-            _termsText(),
-          ],
+        child: SafeArea(
+          child: Column(
+            children: [
+              _topHeroSection(context),
+              _loginInput(context),
+              _termsText(),
+            ],
+          ),
         ),
       ),
     );
@@ -59,9 +191,7 @@ class LoginScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           GestureDetector(
-            onTap: () {
-              // navigate to signup
-            },
+            onTap: () {},
             child: const Text.rich(
               TextSpan(
                 children: [
@@ -92,52 +222,20 @@ class LoginScreen extends StatelessWidget {
       child: Column(
         children: [
           TextFormField(
+            controller: _usernameController,
             keyboardType: TextInputType.emailAddress,
             decoration: const InputDecoration(
-              labelText: "Email",
+              labelText: "unique username",
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 24),
-          TextFormField(
-            obscureText: true,
-            decoration: const InputDecoration(
-              labelText: "Password",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Checkbox(value: false, onChanged: (v) {}),
-                  const Text("Remember Me"),
-                ],
-              ),
-              GestureDetector(
-                onTap: () {
-                  // forgot password action
-                },
-                child: const Text(
-                  "Forgot Password?",
-                  style: TextStyle(color: Colors.blue, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 10),
           SizedBox(
             height: 50,
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainAppScreen()),
-                );
-              },
+              onPressed: handleLoginoAuth1,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
@@ -145,12 +243,34 @@ class LoginScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(5),
                 ),
               ),
-              child: const Text("Log In", style: TextStyle(fontSize: 16)),
+              child: const Text(
+                "Log In Oauth1 [STEP1]",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 50,
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: handleLoginoAuth2,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              child: const Text(
+                "Log In Oauth2 [STEP2]",
+                style: TextStyle(fontSize: 16),
+              ),
             ),
           ),
           const SizedBox(height: 24),
-          Row(
-            children: const [
+          const Row(
+            children: [
               Expanded(child: Divider(thickness: 1)),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8.0),

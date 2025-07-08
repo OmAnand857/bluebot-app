@@ -16,14 +16,20 @@ dependencies:
   flutter_feather_icons: ^2.0.0
   lucide_icons: ^0.257.0
   fl_chart: ^1.0.0
+  http: ^1.4.0
+  flutter_web_auth_2: ^4.0.0-alpha.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
 
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.4.6
-
+  provider: ^6.1.0
+  
 flutter_launcher_icons:
   image_path: "assets/images/android_logo12.png"  # <-- Replace with your icon path
   android: true
