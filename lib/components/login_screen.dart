@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'dart:convert';
+import 'package:bluebot/constants/backend.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -38,9 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final verifier = uri.queryParameters['oauth_verifier'];
       final token = uri.queryParameters['oauth_token'];
       if (verifier != null && token != null) {
-        final backendUri = Uri.parse(
-          "http://192.168.248.73:3000/completeOauth1",
-        );
+        final backendUri = Uri.parse("${backendUrl}/completeOauth1");
 
         try {
           final response = await http.post(
@@ -65,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> handleLoginoAuth1() async {
-    final uri = Uri.parse("http://192.168.248.73:3000/loginIntent");
+    final uri = Uri.parse("${backendUrl}/loginIntent");
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
@@ -87,9 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final state = uri.queryParameters['state'];
 
       if (code != null) {
-        final backendUri = Uri.parse(
-          "http://192.168.248.73:3000/completeOauth2",
-        );
+        final backendUri = Uri.parse("${backendUrl}/completeOauth2");
 
         try {
           final response = await http.post(
@@ -115,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> handleLoginoAuth2() async {
     final Uri url = Uri.parse(
-      'http://192.168.248.73:3000/loginIntentOauth2?user_name=${_usernameController.text.trim()}',
+      '${backendUrl}/loginIntentOauth2?user_name=${_usernameController.text.trim()}',
     );
     try {
       final response = await http.get(url);

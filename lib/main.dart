@@ -1,5 +1,6 @@
 import 'package:bluebot/components/login_screen.dart';
 import 'package:bluebot/components/main_app_screen.dart';
+import 'package:bluebot/constants/backend.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -63,9 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     try {
-      final uri = Uri.parse(
-        'http://192.168.248.73:3000/isUserLoggedIn?user_name=$userName',
-      );
+      final uri = Uri.parse('${backendUrl}/isUserLoggedIn?user_name=$userName');
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {

@@ -1,6 +1,9 @@
+import 'package:bluebot/data_store/user_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:bluebot/constants/backend.dart';
 
 class CalibrateScreen extends StatefulWidget {
   const CalibrateScreen({super.key});
@@ -26,9 +29,13 @@ class _CalibrateScreen extends State<CalibrateScreen> {
   String mustInclude = "";
   String avoid = "";
 
+  bool isTweeting = false;
+  bool tweetToggleLoading = false;
+
   @override
   void initState() {
     super.initState();
+    fetchTweetingStatus();
     topicFocusNode.addListener(() {
       if (!topicFocusNode.hasFocus) handleFieldSave(topicController, "topic");
     });
@@ -114,6 +121,49 @@ class _CalibrateScreen extends State<CalibrateScreen> {
         "Avoid content related to $avoid.";
   }
 
+  Future<void> fetchTweetingStatus() async {
+    final userName = UserStorage.getUserName();
+    if (userName == null || userName.isEmpty) return;
+
+    final url = Uri.parse("${backendUrl}/isUserTweeting?user_name=$userName");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        setState(() {
+          isTweeting = response.body.trim().toLowerCase() == 'true';
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> toggleTweeting() async {
+    final userName = UserStorage.getUserName();
+    if (userName == null || userName.isEmpty) return;
+
+    setState(() => tweetToggleLoading = true);
+    final endpoint = isTweeting ? "stopTweeting" : "startTweeting";
+    final url = Uri.parse("${backendUrl}/$endpoint?user_name=$userName");
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        setState(() {
+          isTweeting = !isTweeting;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isTweeting ? "Started Tweeting ✅" : "Stopped Tweeting 🛑",
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+    } finally {
+      setState(() => tweetToggleLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -146,6 +196,7 @@ class _CalibrateScreen extends State<CalibrateScreen> {
                 //     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 //   ),
                 // ),
+                _letAIDecideSection(),
                 _postFrequency(),
                 _scheduleTimes(),
                 _labelInput(
@@ -188,6 +239,55 @@ class _CalibrateScreen extends State<CalibrateScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _letAIDecideSection() {
+    return _sectionContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Let AI Decide",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "Let BlueBot automatically post tweets based on your preferences.",
+            style: TextStyle(fontSize: 14, color: Colors.black54),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              icon: Icon(isTweeting ? Icons.stop : Icons.play_arrow),
+              label: tweetToggleLoading
+                  ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(isTweeting ? "Stop Tweeting" : "Start Tweeting"),
+              onPressed: tweetToggleLoading ? null : toggleTweeting,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isTweeting ? Colors.red : Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
